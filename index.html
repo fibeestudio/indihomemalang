@@ -58,14 +58,13 @@
       --radius-lg: 24px;
     }
 
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; overflow-x: hidden; } /* overflow-x di html, bukan body — body overflow mematikan position: sticky */
 
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--dark);
       line-height: 1.6;
-      overflow-x: hidden;
     }
 
     a { text-decoration: none; color: inherit; }
@@ -207,6 +206,7 @@
     /* ==================== HERO BANNER ==================== */
     .hero {
       padding-top: 60px;
+      padding-bottom: 100px; /* ruang putih di bawah banner — menyambung mulus ke band judul+tab */
       background: var(--white);
     }
 
@@ -318,41 +318,6 @@
     }
 
 
-    /* ==================== STATS BAR ==================== */
-    .stats {
-      padding: 50px 0;
-      background: var(--white);
-      border-bottom: 1px solid var(--gray-100);
-    }
-
-    .stats .container {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 30px;
-    }
-
-    .stat-item {
-      text-align: center;
-      padding: 10px;
-    }
-
-    .stat-number {
-      font-size: 2.4rem;
-      font-weight: 900;
-      background: var(--gradient-hero);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.03em;
-    }
-
-    .stat-label {
-      font-size: 0.85rem;
-      color: var(--gray-500);
-      font-weight: 500;
-      margin-top: 4px;
-    }
-
     /* ==================== SECTION COMMON ==================== */
     .section {
       padding: 100px 0;
@@ -394,14 +359,12 @@
       line-height: 1.7;
     }
 
-    /* ==================== HOT PROMO ==================== */
-    .promo { background: var(--white); }
-
+    /* ==================== HOT PROMO (tab dlm grup paket) ==================== */
     .promo-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 24px;
-      max-width: 800px;
+      max-width: 624px; /* 2 kolom x 300px + gap */
       margin: 0 auto;
     }
 
@@ -413,6 +376,10 @@
       color: var(--white);
       overflow: hidden;
       transition: transform 0.3s ease;
+      height: 500px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
     }
 
     .promo-card:hover { transform: translateY(-6px); }
@@ -486,6 +453,7 @@
 
     .promo-card .btn {
       width: 100%;
+      margin-top: auto;
       justify-content: center;
       background: var(--white);
       color: var(--red);
@@ -511,13 +479,38 @@
     }
 
     /* ==================== PACKAGES ==================== */
+    .section.packages { padding-top: 0; /* jarak hero→judul pindah ke .hero padding-bottom */ }
     .packages { background: var(--bg); }
 
+    /* Band judul + tab paket — sub-header sticky DI BAWAH navbar (navbar z 1000
+       tetap terlihat di atas, band z 900). Tinggi navbar dinamis (--nav-h dari JS
+       ResizeObserver, ikut berubah saat nav masuk mode .scrolled) */
+    .pkg-head {
+      position: sticky;
+      top: var(--nav-h, 70px);
+      z-index: 900;
+      background: var(--white);
+      padding-bottom: 32px; /* jarak ke panel — ikut terisi putih saat sticky */
+    }
+
     .pkg-tabs {
+      position: relative; /* acuan offsetLeft tab utk scroll-into-view */
       display: flex;
       justify-content: center;
+      justify-content: safe center; /* fallback: center biasa — tak memotong tab saat overflow */
+      flex-wrap: nowrap; /* semua tab satu baris horizontal */
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+      overscroll-behavior-x: contain;
       gap: 8px;
-      margin-bottom: 48px;
+      margin-bottom: 0; /* jarak ke panel diatur .pkg-head padding-bottom agar ikut bg putih */
+      padding-bottom: 2px;
+    }
+
+    .pkg-tabs::-webkit-scrollbar {
+      display: none;
     }
 
     .pkg-tab {
@@ -529,6 +522,9 @@
       color: var(--gray-500);
       border: 2px solid var(--gray-100);
       transition: all 0.3s;
+      flex: 0 0 auto;
+      white-space: nowrap;
+      scroll-snap-align: center;
     }
 
     .pkg-tab.active,
@@ -536,6 +532,15 @@
       background: var(--red);
       color: var(--white);
       border-color: var(--red);
+    }
+
+    /* Panel tab paket: hanya satu yang tampil */
+    .pkg-tab-panel {
+      display: none;
+    }
+
+    .pkg-tab-panel.active {
+      display: block;
     }
 
     .pkg-grid {
@@ -548,9 +553,12 @@
       background: var(--white);
       border-radius: var(--radius-lg);
       padding: 32px 28px;
+      height: 500px; /* tinggi tetap semua card paket */
       border: 2px solid var(--gray-100);
       transition: all 0.3s ease;
       position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
     .pkg-card:hover {
@@ -612,6 +620,8 @@
     .pkg-price {
       text-align: center;
       margin-bottom: 6px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--gray-100);
     }
 
     .pkg-price-label {
@@ -644,47 +654,362 @@
       font-weight: 700;
     }
 
-    .pkg-features {
-      list-style: none;
-      margin-bottom: 28px;
-    }
-
-    .pkg-features li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 0;
-      font-size: 0.82rem;
-      color: var(--gray-700);
-      font-weight: 500;
-    }
-
-    .pkg-features li .check {
-      width: 20px;
-      height: 20px;
-      background: rgba(228,0,43,0.1);
-      color: var(--red);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.65rem;
-      flex-shrink: 0;
-    }
 
     .pkg-card .btn {
       width: 100%;
       justify-content: center;
       font-size: 0.85rem;
       padding: 14px;
+      margin-top: auto; /* tombol rata bawah jika card lebih pendek */
     }
 
     .pkg-grid-3 {
       grid-template-columns: repeat(3, 1fr);
     }
 
+    .pkg-speed-old {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gray-500);
+      text-decoration: line-through;
+      margin-bottom: 4px;
+    }
+
+    .pkg-logos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 6px;
+      row-gap: 8px;
+      overflow: hidden;
+      /* box-sizing border-box global: tanpa padding supaya max-height murni ruang logo.
+         26px = logo tertinggi (24px) + cadangan; baris ke-2 mulai di y=32 → tersembunyi. */
+      max-height: 26px;
+    }
+
+    .pkg-logos img {
+      height: 24px;
+      width: auto;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+
+    .pkg-logos img[alt="Netflix"] {
+      height: 18px;
+    }
+
+    .pkg-logos img[alt="Free Fire"],
+    .pkg-logos img[alt="Point Blank"] {
+      height: 18px;
+    }
+
+    /* Section UltraMesh — di bawah harga, utk semua paket yang ada UltraMesh-nya */
+    .pkg-ultramesh {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 14px;
+      margin-bottom: 16px;
+      background: rgba(228, 0, 43, 0.06);
+      border: 1px solid rgba(228, 0, 43, 0.28);
+      border-radius: 10px;
+    }
+
+    .pkg-ultramesh img {
+      height: 26px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .pkg-ultramesh span {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    /* Tombol "Lihat Semua N+" di bawah baris logo */
+    .pkg-logos-more {
+      display: block;
+      margin: 2px auto 14px;
+      background: none;
+      color: var(--red);
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-decoration: underline;
+      padding: 4px 10px;
+      min-height: 26px;
+    }
+
+    .pkg-logos-more[hidden] {
+      display: none;
+    }
+
+    /* ==================== MODAL BONUS ==================== */
+    .bonus-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .bonus-modal[hidden] {
+      display: none;
+    }
+
+    .bonus-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 17, 17, 0.55);
+      backdrop-filter: blur(4px);
+    }
+
+    .bonus-modal-box {
+      position: relative;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      width: min(480px, 100%);
+      max-height: 76vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    .bonus-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .bonus-modal-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--dark);
+    }
+
+    .bonus-modal-close {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--gray-100);
+      color: var(--dark);
+      font-size: 1.3rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bonus-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 16px 20px 22px;
+      overflow-y: auto;
+    }
+
+    .bonus-modal-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 8px;
+      background: var(--bg);
+      border-radius: 12px;
+      text-align: center;
+      min-height: 86px;
+    }
+
+    .bonus-modal-item img {
+      height: 26px;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    .bonus-modal-item span {
+      font-size: 0.66rem;
+      font-weight: 600;
+      color: var(--gray-500);
+      line-height: 1.3;
+    }
+
+    @keyframes bonusSheetUp {
+      from { transform: translateY(48px); opacity: 0; }
+    }
+
+    /* Mobile: modal jadi bottom sheet — menempel di layar bawah */
+    @media (max-width: 768px) {
+      .bonus-modal {
+        align-items: flex-end;
+        padding: 0;
+      }
+
+      .bonus-modal-box {
+        width: 100%;
+        max-height: 78vh;
+        border-radius: 18px 18px 0 0;
+        animation: bonusSheetUp 0.28s ease;
+      }
+
+      .bonus-modal-grid {
+        padding-bottom: calc(22px + env(safe-area-inset-bottom));
+      }
+    }
+
     .pkg-card.popular .btn-red {
       background: var(--gradient-cta);
+    }
+
+    /* ==================== CAROUSEL ==================== */
+    .pkg-carousel {
+      position: relative;
+      display: block; /* tombol overlay menimpa card, bukan flex sibling */
+      margin: 0 0 24px;
+    }
+
+    .packages .section-header,
+    .dynamic .section-header {
+      margin-bottom: 20px;
+    }
+
+    .pkg-scroll {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: stretch;
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding: 24px 0 52px; /* ruang aman utk bayangan: hover lg extent bawah ~50px, glow atas ~12px+8px hover */
+    }
+
+    .pkg-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .pkg-scroll .pkg-card,
+    .pkg-scroll .dynamic-card {
+      flex: 0 0 auto;
+      scroll-snap-align: center;
+      width: min(300px, 100%);
+      box-sizing: border-box;
+    }
+
+    /* Card rata tengah di mobile: spacer kiri-kanan agar card pertama & terakhir
+       bisa center saat snap. (100% - 300px card - 2x16px gap) / 2 */
+    .pkg-scroll::before,
+    .pkg-scroll::after {
+      content: '';
+      flex: 0 0 auto;
+      width: max(0px, calc((100% - 332px) / 2));
+    }
+
+    .carousel-btn {
+      position: absolute;
+      top: calc(50% - 14px); /* koreksi selisih padding scroll (52-24)/2 → pas di tengah card */
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--red);
+      background: var(--white);
+      color: var(--red);
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.2s ease;
+      line-height: 1;
+      padding: 0;
+      box-shadow: 0 4px 14px rgba(17, 17, 17, 0.15);
+    }
+
+    /* prev/next menimpa card di kiri-kanan (overlay) */
+    .carousel-prev {
+      left: 8px;
+    }
+
+    .carousel-next {
+      right: 8px;
+    }
+
+    .carousel-btn:hover:not(:disabled) {
+      background: var(--red);
+      color: var(--white);
+    }
+
+    .carousel-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: var(--gray-300);
+      color: var(--gray-400);
+      box-shadow: none;
+    }
+
+    /* Desktop: kartu paket jadi CAROUSEL MENDATAR — scroll horizontal + tombol
+       prev/next (sebelumnya dipaksa jadi grid dan tombol disembunyikan) */
+    @media (min-width: 1024px) {
+      .pkg-scroll,
+      .dynamic-grid.pkg-scroll {
+        gap: 20px;
+        scroll-padding-left: 0;
+      }
+      .pkg-scroll .pkg-card,
+      .pkg-scroll .dynamic-card {
+        width: 300px;
+        max-width: none;
+        scroll-snap-align: start; /* rata kiri — gaya carousel */
+      }
+      /* One Dynamic: class ganda dynamic-grid + pkg-scroll — base .dynamic-grid
+         (display: grid) menang cascade; di desktop paksa flex agar ikut carousel */
+      .dynamic-grid.pkg-scroll {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        padding: 24px 0 52px;
+      }
+      .dynamic-grid.pkg-scroll::-webkit-scrollbar { display: none; }
+      /* tanpa spacer center: mulai rata tepi container, overflow ke kanan */
+      .pkg-scroll::before,
+      .pkg-scroll::after {
+        display: none;
+      }
+      /* Hot Promo desktop juga flex carousel (sebelumnya grid 2 kolom center) */
+      .promo-grid {
+        display: flex;
+        max-width: none;
+        gap: 20px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: 0;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        padding: 0 0 4px;
+      }
+      .promo-grid::-webkit-scrollbar { display: none; }
+      .promo-card {
+        flex: 0 0 300px;
+        scroll-snap-align: start;
+      }
+      #promo .carousel-btn { top: 50%; }
     }
 
     /* ==================== ONE DYNAMIC ==================== */
@@ -696,13 +1021,40 @@
       gap: 20px;
     }
 
+    /* One Dynamic memakai class ganda dynamic-grid + pkg-scroll — base .dynamic-grid
+       (display: grid, lebih bawah di file) menang atas .pkg-scroll; paksa flex
+       supaya jadi carousel di semua ukuran seperti kartu paket lain.
+       gap sengaja TIDAK di-set di sini: mobile dpt 16px dari .pkg-scroll,
+       desktop 20px dari blok media min-width 1024. */
+    .dynamic-grid.pkg-scroll {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding: 24px 0 52px;
+    }
+
+    .dynamic-grid.pkg-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
     .dynamic-card {
       background: var(--bg);
       border-radius: var(--radius-lg);
       padding: 32px 24px;
+      height: 500px; /* tinggi tetap semua card paket */
       text-align: center;
       border: 2px solid transparent;
       transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Panel One Dynamic kini berada di section packages (bg var(--bg)) — card putih agar tetap kontras */
+    #dynamic .dynamic-card {
+      background: var(--white);
+      border-color: var(--gray-100);
     }
 
     .dynamic-card:hover {
@@ -777,6 +1129,7 @@
       background: transparent;
       color: var(--dark);
       border: 2px solid var(--dark);
+      margin-top: auto; /* tombol rata bawah jika card lebih pendek */
     }
 
     .dynamic-grid-3 {
@@ -1268,6 +1621,7 @@
     .section-landed .dynamic-card:nth-child(4),
     .section-landed .feature-card:nth-child(4) { animation-delay: 0.4s; }
 
+    .section-landed .pkg-card:nth-child(5),
     .section-landed .feature-card:nth-child(5) { animation-delay: 0.5s; }
     .section-landed .feature-card:nth-child(6) { animation-delay: 0.6s; }
 
@@ -1278,6 +1632,17 @@
     }
 
     /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+      .pkg-ultramesh {
+        padding: 7px 12px;
+        margin-bottom: 14px;
+      }
+
+      .pkg-ultramesh img {
+        height: 24px;
+      }
+    }
+
     @media (max-width: 1024px) {
       .pkg-grid, .pkg-grid-3, .dynamic-grid, .dynamic-grid-3 { grid-template-columns: repeat(2, 1fr); }
       .features-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1331,31 +1696,81 @@
 
       .mobile-toggle { display: flex; }
 
-      .stats .container { grid-template-columns: repeat(2, 1fr); }
-      .stat-number { font-size: 1.8rem; }
+      /* ==== compact mobile-app layout ==== */
+      .container { padding: 0 16px; }
+      .section { padding: 48px 0; }
+      .hero { padding-bottom: 48px; }
+      .section-header { margin-bottom: 24px; }
+      .section-tag { font-size: 0.68rem; padding: 5px 14px; margin-bottom: 12px; }
+      .section-title { font-size: 1.55rem; margin-bottom: 10px; }
+      .section-desc { font-size: 0.88rem; line-height: 1.6; }
 
-      .section { padding: 70px 0; }
-      .section-title { font-size: 1.8rem; }
+      /* tab strip full-bleed & bisa di-slide */
+      .pkg-tabs {
+        justify-content: flex-start;
+        margin: 0 -16px 20px;
+        padding: 0 16px 4px;
+      }
+      .pkg-tab { flex: 0 0 auto; white-space: nowrap; padding: 9px 18px; font-size: 0.82rem; }
 
-      .promo-grid { grid-template-columns: 1fr; }
+      /* kartu paket lebih padat — tinggi 500px tetap */
+      .pkg-card { padding: 26px 20px; }
+      .pkg-speed-num { font-size: 2.6rem; }
+      .pkg-name { margin-bottom: 18px; padding-bottom: 18px; }
+      #promo .carousel-btn { top: 50%; }
+      .pkg-install { margin-bottom: 18px; }
+      .dynamic-card { padding: 26px 20px; }
+      .dynamic-speed { font-size: 2.2rem; }
+      .dynamic-label { margin: 4px 0 14px; }
+      .dynamic-bonus { margin-bottom: 16px; }
+
+      .pkg-tab:active, .btn:active { transform: scale(0.97); }
+
+      /* Hot Promo: horizontal snap scroller seperti kartu paket */
+      .promo-grid {
+        display: flex;
+        max-width: none;
+        gap: 14px;
+        margin: 0 -16px;
+        padding: 4px 16px 8px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: 16px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .promo-grid::-webkit-scrollbar { display: none; }
+      .promo-card {
+        flex: 0 0 min(300px, 100%);
+        scroll-snap-align: start;
+        padding: 26px 22px;
+      }
+      .promo-card .promo-speed { font-size: 1.15rem; margin-bottom: 16px; }
+      .promo-prices { gap: 14px; margin-bottom: 16px; }
       .pkg-grid, .pkg-grid-3, .dynamic-grid, .dynamic-grid-3 { grid-template-columns: 1fr; }
-      .features-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; gap: 14px; }
+      .feature-card { padding: 26px 22px; }
+      .feature-icon { width: 46px; height: 46px; border-radius: 14px; font-size: 1.05rem; margin-bottom: 14px; }
       .testi-grid { grid-template-columns: 1fr; }
+      .testi-card { padding: 26px 22px; }
+      .testi-controls { margin-top: 24px; }
 
-      .cta-box { padding: 50px 30px; }
-      .cta-box h2 { font-size: 1.8rem; }
+      .cta { padding: 60px 0; }
+      .cta-box { padding: 44px 22px; }
+      .cta-box h2 { font-size: 1.45rem; }
+      .cta-box p { font-size: 0.92rem; margin-bottom: 26px; }
 
-      .footer-top { grid-template-columns: 1fr; }
+      .footer { padding: 44px 0 24px; }
+      .footer-top { grid-template-columns: 1fr; gap: 26px; margin-bottom: 34px; }
       .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
 
       .nav-logo .region { font-size: 1.1rem; }
 
-      .hero-inner { padding: 16px 16px 0; }
+      .hero-inner { padding: 12px 16px 0; }
       .hero-img-wrap { border-radius: 14px; }
     }
 
     @media (max-width: 480px) {
-      .pkg-tabs { flex-wrap: wrap; }
       .nav-logo img { height: 26px; }
       .nav-logo .region { font-size: 0.9rem; padding-left: 8px; }
       .hero-bottom { gap: 16px; }
@@ -1399,144 +1814,560 @@
     </div>
   </section>
 
-  <!-- STATS -->
-  <section class="stats">
-    <div class="container">
-      <div class="stat-item">
-        <div class="stat-number">10K+</div>
-        <div class="stat-label">Pelanggan di Malang</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">150</div>
-        <div class="stat-label">Mbps Kecepatan Maks</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">99.9%</div>
-        <div class="stat-label">Uptime Jaringan</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">24/7</div>
-        <div class="stat-label">Layanan Support</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- HOT PROMO -->
-  <section class="section promo" id="promo">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag"><i class="fa-solid fa-fire"></i> Hot Promo</div>
-        <h2 class="section-title">Penawaran Spesial Bulan Ini</h2>
-        <p class="section-desc">Paket One Dynamic 20 Mbps + Kuota 30GB /Bulan cuma Rp 148.000/bulan!</p>
-      </div>
-      <div class="promo-grid">
-        <!-- PROMO UTAMA: One Dynamic 20 Mbps -->
-        <div class="promo-card promo-main">
-          <div class="promo-label">Promo Utama</div>
-          <div class="promo-name">One Dynamic</div>
-          <div class="promo-speed">Kecepatan Wifi 20 Mbps + Kuota Keluarga 30GB /Bulan</div>
-          <div class="promo-prices">
-            <div class="promo-price-item">
-              <small>Harga Perbulan</small>
-              <strong style="font-size:1.6rem;">Rp 148.000</strong>
-            </div>
-          </div>
-          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Promo%20One%20Dynamic%2020%20Mbps%20Rp%20148.000" class="btn">Ambil Promo Ini</a>
-        </div>
-        <!-- Ez Net -->
-        <div class="promo-card">
-          <div class="promo-label">Internet Only</div>
-          <div class="promo-name">Paket Eznet</div>
-          <div class="promo-speed">Kecepatan 20 Mbps</div>
-          <div class="promo-prices">
-            <div class="promo-price-item">
-              <small>Bulanan</small>
-              <strong>Rp 170.000</strong>
-            </div>
-          </div>
-          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20paket%20Eznet%2020%20Mbps" class="btn">Pilih Paket Ini</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PAKET REVAMP -->
+  <!-- PAKET INTERNET -->
   <section class="section packages" id="packages">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag"><i class="fa-solid fa-box-open"></i> Paket Internet</div>
-        <h2 class="section-title">Pilih Paket Revamp Terbaik</h2>
-        <p class="section-desc">Nikmati internet super cepat dengan bonus CatchPlay, Prime Video, dan IndiHome TV.</p>
+    <div class="pkg-head">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Pilih Paket Internet Terbaik</h2>
+        </div>
+        <div class="pkg-tabs">
+          <button class="pkg-tab" data-target="promo">Hot Promo</button>
+          <button class="pkg-tab active" data-target="pkg-tab-internet">Internet</button>
+          <button class="pkg-tab" data-target="packages-game">Internet + Game</button>
+          <button class="pkg-tab" data-target="packages-movie">Internet + Movie</button>
+          <button class="pkg-tab" data-target="packages-maxstream">MAXstream</button>
+          <button class="pkg-tab" data-target="dynamic">One Dynamic</button>
+        </div>
       </div>
-      <div class="pkg-grid pkg-grid-3">
-        <!-- 50 Mbps -->
+    </div>
+    <div class="container">
+      <div class="pkg-tab-panel" id="promo">
+        <div class="pkg-carousel">
+          <button class="carousel-btn carousel-prev" aria-label="Sebelumnya" disabled>&#10094;</button>
+          <div class="promo-grid">
+          <!-- PROMO UTAMA: One Dynamic 20 Mbps -->
+          <div class="promo-card promo-main">
+            <div class="promo-label">Promo Utama</div>
+            <div class="promo-name">One Dynamic</div>
+            <div class="promo-speed">Kecepatan Wifi 20 Mbps + Kuota Keluarga 30GB /Bulan</div>
+            <div class="promo-prices">
+              <div class="promo-price-item">
+                <small>Harga Perbulan</small>
+                <strong style="font-size:1.6rem;">Rp 148.000</strong>
+              </div>
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Promo%20One%20Dynamic%2020%20Mbps%20Rp%20148.000" class="btn">Ambil Promo Ini</a>
+          </div>
+          <!-- Ez Net -->
+          <div class="promo-card">
+            <div class="promo-label">Internet Only</div>
+            <div class="promo-name">Paket Eznet</div>
+            <div class="promo-speed">Kecepatan 20 Mbps</div>
+            <div class="promo-prices">
+              <div class="promo-price-item">
+                <small>Bulanan</small>
+                <strong>Rp 170.000</strong>
+              </div>
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20paket%20Eznet%2020%20Mbps" class="btn">Pilih Paket Ini</a>
+          </div>
+          <button class="carousel-btn carousel-next" aria-label="Sesudahnya">&#10095;</button>
+        </div>
+      </div>
+      </div>
+      <div class="pkg-tab-panel active" id="pkg-tab-internet">
+      <div class="pkg-carousel">
+        <button class="carousel-btn carousel-prev" aria-label="Sebelumnya" disabled>&#10094;</button>
+        <div class="pkg-grid pkg-grid-3 pkg-scroll">
+        <!-- 200 Mbps -->
         <div class="pkg-card">
           <div class="pkg-speed">
-            <div class="pkg-speed-num">50 <span class="pkg-speed-unit">Mbps</span></div>
+            <div class="pkg-speed-old">75 Mbps</div>
+            <div class="pkg-speed-num">200 <span class="pkg-speed-unit">Mbps</span></div>
           </div>
-          <div class="pkg-name">Paket Revamp</div>
+          <div class="pkg-name">Paket Internet</div>
           <div class="pkg-price">
             <div class="pkg-price-label">Harga Perbulan</div>
-            <div class="pkg-price-amount">Rp 230.000</div>
+            <div class="pkg-price-amount">Rp 240.000</div>
           </div>
-          <ul class="pkg-features">
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> CatchPlay+</li>
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> Prime Video</li>
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> IndiHome TV</li>
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> Unlimited Data</li>
-          </ul>
-          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Revamp%2050%20Mbps" class="btn btn-outline-red">Pilih Paket</a>
+          <div class="pkg-logos">
+            <img src="logoBonusPaketInternet/vision+.webp" alt="Vision+" loading="lazy">
+            <img src="logoBonusPaketInternet/primevideo.webp" alt="Prime Video" loading="lazy">
+            <img src="logoBonusPaketInternet/viu.webp" alt="Viu" loading="lazy">
+            <img src="logoBonusPaketInternet/maxstream.png" alt="MAXstream" loading="lazy">
+          </div>
+          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Internet%20200%20Mbps%20Rp%20240.000" class="btn btn-outline-red">Pilih Paket</a>
         </div>
-        <!-- 75 Mbps -->
+        <!-- 300 Mbps -->
+        <div class="pkg-card">
+          <div class="pkg-speed">
+            <div class="pkg-speed-old">100 Mbps</div>
+            <div class="pkg-speed-num">300 <span class="pkg-speed-unit">Mbps</span></div>
+          </div>
+          <div class="pkg-name">Paket Internet</div>
+          <div class="pkg-price">
+            <div class="pkg-price-label">Harga Perbulan</div>
+            <div class="pkg-price-amount">Rp 270.000</div>
+          </div>
+          <div class="pkg-logos">
+            <img src="logoBonusPaketInternet/vision+.webp" alt="Vision+" loading="lazy">
+            <img src="logoBonusPaketInternet/primevideo.webp" alt="Prime Video" loading="lazy">
+            <img src="logoBonusPaketInternet/viu.webp" alt="Viu" loading="lazy">
+            <img src="logoBonusPaketInternet/maxstream.png" alt="MAXstream" loading="lazy">
+          </div>
+          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Internet%20300%20Mbps%20Rp%20270.000" class="btn btn-outline-red">Pilih Paket</a>
+        </div>
+        <!-- 500 Mbps - Rp 300.000 -->
+        <div class="pkg-card">
+          <div class="pkg-speed">
+            <div class="pkg-speed-old">150 Mbps</div>
+            <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+          </div>
+          <div class="pkg-name">Paket Internet</div>
+          <div class="pkg-price">
+            <div class="pkg-price-label">Harga Perbulan</div>
+            <div class="pkg-price-amount">Rp 300.000</div>
+          </div>
+          <div class="pkg-logos">
+            <img src="logoBonusPaketInternet/vision+.webp" alt="Vision+" loading="lazy">
+            <img src="logoBonusPaketInternet/primevideo.webp" alt="Prime Video" loading="lazy">
+            <img src="logoBonusPaketInternet/viu.webp" alt="Viu" loading="lazy">
+            <img src="logoBonusPaketInternet/maxstream.png" alt="MAXstream" loading="lazy">
+          </div>
+          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Internet%20500%20Mbps%20Rp%20300.000" class="btn btn-outline-red">Pilih Paket</a>
+        </div>
+        <!-- 500 Mbps - Rp 350.000 -->
         <div class="pkg-card popular">
           <div class="pkg-popular-tag">Paling Populer</div>
           <div class="pkg-speed">
-            <div class="pkg-speed-num">75 <span class="pkg-speed-unit">Mbps</span></div>
+            <div class="pkg-speed-old">200 Mbps</div>
+            <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
           </div>
-          <div class="pkg-name">Paket Revamp</div>
+          <div class="pkg-name">Paket Internet</div>
           <div class="pkg-price">
             <div class="pkg-price-label">Harga Perbulan</div>
-            <div class="pkg-price-amount">Rp 250.000</div>
+            <div class="pkg-price-amount">Rp 350.000</div>
           </div>
-          <ul class="pkg-features">
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> CatchPlay+</li>
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> Prime Video</li>
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> IndiHome TV</li>
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> Unlimited Data</li>
-          </ul>
-          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Revamp%2075%20Mbps" class="btn btn-red">Pilih Paket</a>
+          <div class="pkg-logos">
+            <img src="logoBonusPaketInternet/vision+.webp" alt="Vision+" loading="lazy">
+            <img src="logoBonusPaketInternet/primevideo.webp" alt="Prime Video" loading="lazy">
+            <img src="logoBonusPaketInternet/viu.webp" alt="Viu" loading="lazy">
+            <img src="logoBonusPaketInternet/maxstream.png" alt="MAXstream" loading="lazy">
+          </div>
+          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Internet%20500%20Mbps%20Rp%20350.000" class="btn btn-red">Pilih Paket</a>
         </div>
-        <!-- 150 Mbps -->
-        <div class="pkg-card">
+        <!-- 500 Mbps + Netflix Basic - Rp 500.000 -->
+        <div class="pkg-card popular">
+          <div class="pkg-popular-tag">Best Value</div>
           <div class="pkg-speed">
-            <div class="pkg-speed-num">150 <span class="pkg-speed-unit">Mbps</span></div>
+            <div class="pkg-speed-old">300 Mbps</div>
+            <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
           </div>
-          <div class="pkg-name">Paket Revamp</div>
+          <div class="pkg-name">Paket Internet</div>
           <div class="pkg-price">
             <div class="pkg-price-label">Harga Perbulan</div>
-            <div class="pkg-price-amount">Rp 325.000</div>
+            <div class="pkg-price-amount">Rp 500.000</div>
           </div>
-          <ul class="pkg-features">
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> CatchPlay+</li>
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> Prime Video</li>
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> IndiHome TV</li>
-            <li><span class="check"><i class="fa-solid fa-check"></i></span> Unlimited Data</li>
-          </ul>
-          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Revamp%20150%20Mbps" class="btn btn-outline-red">Pilih Paket</a>
+          <div class="pkg-logos">
+            <img src="logoBonusPaketInternet/netflix.webp" alt="Netflix" loading="lazy">
+            <img src="logoBonusPaketInternet/vision+.webp" alt="Vision+" loading="lazy">
+            <img src="logoBonusPaketInternet/primevideo.webp" alt="Prime Video" loading="lazy">
+            <img src="logoBonusPaketInternet/viu.webp" alt="Viu" loading="lazy">
+            <img src="logoBonusPaketInternet/maxstream.png" alt="MAXstream" loading="lazy">
+          </div>
+          <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Paket%20Internet%20500%20Mbps%20Netflix%20Rp%20500.000" class="btn btn-red">Pilih Paket</a>
         </div>
+        </div>
+        <button class="carousel-btn carousel-next" aria-label="Selanjutnya">&#10095;</button>
       </div>
-    </div>
-  </section>
+      <p style="text-align: center; font-size: 0.8rem; color: var(--gray-500); margin-top: 24px;">* Berlaku selama 90 hari</p>
+      </div><!-- /pkg-tab-panel internet -->
 
-  <!-- ONE DYNAMIC PACKAGES -->
-  <section class="section dynamic" id="dynamic">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag" style="background: rgba(17,17,17,0.1); color: var(--dark);"><i class="fa-solid fa-rocket"></i> One Dynamic</div>
-        <h2 class="section-title">Paket One Dynamic</h2>
-        <p class="section-desc">Bonus kuota mobile hingga 30GB /bulan. Koneksi rumah dan mobile dalam satu paket.</p>
+      <div class="pkg-tab-panel" id="packages-game">
+      <div class="pkg-carousel">
+        <button class="carousel-btn carousel-prev" aria-label="Sebelumnya" disabled>&#10094;</button>
+        <div class="pkg-grid pkg-grid-3 pkg-scroll">
+          <!-- 200 Mbps -->
+          <div class="pkg-card">
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">75 Mbps</div>
+              <div class="pkg-speed-num">200 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Game</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 290.000</div>
+            </div>
+            <div class="pkg-logos">
+              <img src="LogoBonusPaketInternetGame/freefire.png" alt="Free Fire" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/pointblank.png" alt="Point Blank" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/audition.png" alt="Audition" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/auditionmobile.png" alt="Audition Mobile" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/ml.png" alt="Mobile Legends" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/duniagames.png" alt="Dunia Games" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/maxstream.png" alt="MAXstream" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/Kuncie.png" alt="Kuncie" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Game%20200%20Mbps%20Rp%20290.000" class="btn btn-outline-red">Pilih Paket</a>
+          </div>
+          <!-- 300 Mbps -->
+          <div class="pkg-card">
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">100 Mbps</div>
+              <div class="pkg-speed-num">300 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Game</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 320.000</div>
+            </div>
+            <div class="pkg-logos">
+              <img src="LogoBonusPaketInternetGame/freefire.png" alt="Free Fire" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/pointblank.png" alt="Point Blank" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/audition.png" alt="Audition" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/auditionmobile.png" alt="Audition Mobile" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/ml.png" alt="Mobile Legends" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/duniagames.png" alt="Dunia Games" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/maxstream.png" alt="MAXstream" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/Kuncie.png" alt="Kuncie" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Game%20300%20Mbps%20Rp%20320.000" class="btn btn-outline-red">Pilih Paket</a>
+          </div>
+          <!-- 500 Mbps -->
+          <div class="pkg-card">
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">150 Mbps</div>
+              <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Game</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 350.000</div>
+            </div>
+            <div class="pkg-logos">
+              <img src="LogoBonusPaketInternetGame/freefire.png" alt="Free Fire" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/pointblank.png" alt="Point Blank" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/audition.png" alt="Audition" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/auditionmobile.png" alt="Audition Mobile" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/ml.png" alt="Mobile Legends" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/duniagames.png" alt="Dunia Games" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/maxstream.png" alt="MAXstream" loading="lazy">
+              <img src="LogoBonusPaketInternetGame/Kuncie.png" alt="Kuncie" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Game%20500%20Mbps%20Rp%20350.000" class="btn btn-outline-red">Pilih Paket</a>
+          </div>
+          <!-- 500 Mbps Ultra Mesh -->
+          <div class="pkg-card popular">
+            <div class="pkg-popular-tag">Paling Populer</div>
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">200 Mbps</div>
+              <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Game</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 400.000</div>
+            </div>
+            <div class="pkg-ultramesh">
+              <img src="LogoBonusPaketInternetGame/ultramesh.png" alt="Ultra Mesh" loading="lazy">
+              <span>Ultra Mesh</span>
+            </div>
+            <div class="pkg-logos">
+                <img src="LogoBonusPaketInternetGame/freefire.png" alt="Free Fire" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/pointblank.png" alt="Point Blank" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/audition.png" alt="Audition" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/auditionmobile.png" alt="Audition Mobile" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/ml.png" alt="Mobile Legends" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/duniagames.png" alt="Dunia Games" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/maxstream.png" alt="MAXstream" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/Kuncie.png" alt="Kuncie" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Game%20500%20Mbps%20Mesh%20Rp%20400.000" class="btn btn-red">Pilih Paket</a>
+          </div>
+          <!-- 500 Mbps Ultra Mesh Best Value -->
+          <div class="pkg-card popular">
+            <div class="pkg-popular-tag">Best Value</div>
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">300 Mbps</div>
+              <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Game</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 550.000</div>
+            </div>
+            <div class="pkg-ultramesh">
+              <img src="LogoBonusPaketInternetGame/ultramesh.png" alt="Ultra Mesh" loading="lazy">
+              <span>Ultra Mesh</span>
+            </div>
+            <div class="pkg-logos">
+                <img src="LogoBonusPaketInternetGame/freefire.png" alt="Free Fire" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/pointblank.png" alt="Point Blank" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/audition.png" alt="Audition" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/auditionmobile.png" alt="Audition Mobile" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/ml.png" alt="Mobile Legends" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/duniagames.png" alt="Dunia Games" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/maxstream.png" alt="MAXstream" loading="lazy">
+                <img src="LogoBonusPaketInternetGame/Kuncie.png" alt="Kuncie" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Game%20500%20Mbps%20Mesh%20Rp%20550.000" class="btn btn-red">Pilih Paket</a>
+          </div>
+        </div>
+        <button class="carousel-btn carousel-next" aria-label="Selanjutnya">&#10095;</button>
       </div>
-      <div class="dynamic-grid dynamic-grid-3">
+      <p style="text-align: center; font-size: 0.8rem; color: var(--gray-500); margin-top: 24px;">* Berlaku selama 90 hari</p>
+      </div><!-- /pkg-tab-panel game -->
+
+      <div class="pkg-tab-panel" id="packages-movie">
+      <div class="pkg-carousel">
+        <button class="carousel-btn carousel-prev" aria-label="Sebelumnya" disabled>&#10094;</button>
+        <div class="pkg-grid pkg-grid-3 pkg-scroll">
+          <!-- 200 Mbps -->
+          <div class="pkg-card">
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">75 Mbps</div>
+              <div class="pkg-speed-num">200 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Movie Complete</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 350.000</div>
+            </div>
+            <div class="pkg-logos">
+              <img src="logoBonusPaketInternetMovie/netflix.webp" alt="Netflix" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/Vidio.png" alt="Vidio" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/vision+.webp" alt="Vision+" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/primevideo.webp" alt="Prime Video" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/Disney+.png" alt="Disney+" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/viu.webp" alt="Viu" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/WeTV_logo.svg.webp" alt="WeTV" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/Kuncie.png" alt="Kuncie" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/logo.png" alt="Fita" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/maxstream.png" alt="Maxstream" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Movie%20Complete%20200%20Mbps%20Rp%20350.000" class="btn btn-outline-red">Pilih Paket</a>
+          </div>
+          <!-- 300 Mbps -->
+          <div class="pkg-card">
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">100 Mbps</div>
+              <div class="pkg-speed-num">300 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Movie Complete</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 380.000</div>
+            </div>
+            <div class="pkg-logos">
+              <img src="logoBonusPaketInternetMovie/netflix.webp" alt="Netflix" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/Vidio.png" alt="Vidio" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/vision+.webp" alt="Vision+" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/primevideo.webp" alt="Prime Video" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/Disney+.png" alt="Disney+" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/viu.webp" alt="Viu" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/WeTV_logo.svg.webp" alt="WeTV" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/Kuncie.png" alt="Kuncie" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/logo.png" alt="Fita" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/maxstream.png" alt="Maxstream" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Movie%20Complete%20300%20Mbps%20Rp%20380.000" class="btn btn-outline-red">Pilih Paket</a>
+          </div>
+          <!-- 500 Mbps -->
+          <div class="pkg-card">
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">150 Mbps</div>
+              <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Movie Complete</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 410.000</div>
+            </div>
+            <div class="pkg-logos">
+              <img src="logoBonusPaketInternetMovie/netflix.webp" alt="Netflix" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/Vidio.png" alt="Vidio" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/vision+.webp" alt="Vision+" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/primevideo.webp" alt="Prime Video" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/Disney+.png" alt="Disney+" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/viu.webp" alt="Viu" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/WeTV_logo.svg.webp" alt="WeTV" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/Kuncie.png" alt="Kuncie" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/logo.png" alt="Fita" loading="lazy">
+              <img src="logoBonusPaketInternetMovie/maxstream.png" alt="Maxstream" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Movie%20Complete%20500%20Mbps%20Rp%20410.000" class="btn btn-outline-red">Pilih Paket</a>
+          </div>
+          <!-- 500 Mbps Ultra Mesh -->
+          <div class="pkg-card popular">
+            <div class="pkg-popular-tag">Paling Populer</div>
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">200 Mbps</div>
+              <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Movie Complete</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 460.000</div>
+            </div>
+            <div class="pkg-ultramesh">
+              <img src="logoBonusPaketInternetMovie/ultramesh.png" alt="Ultra Mesh" loading="lazy">
+              <span>Ultra Mesh</span>
+            </div>
+            <div class="pkg-logos">
+                <img src="logoBonusPaketInternetMovie/netflix.webp" alt="Netflix" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/Vidio.png" alt="Vidio" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/vision+.webp" alt="Vision+" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/primevideo.webp" alt="Prime Video" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/Disney+.png" alt="Disney+" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/viu.webp" alt="Viu" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/WeTV_logo.svg.webp" alt="WeTV" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/Kuncie.png" alt="Kuncie" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/logo.png" alt="Fita" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/maxstream.png" alt="Maxstream" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Movie%20Complete%20500%20Mbps%20Mesh%20Rp%20460.000" class="btn btn-red">Pilih Paket</a>
+          </div>
+          <!-- 500 Mbps Ultra Mesh Best Value -->
+          <div class="pkg-card popular">
+            <div class="pkg-popular-tag">Best Value</div>
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">300 Mbps</div>
+              <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + Movie Complete</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 610.000</div>
+            </div>
+            <div class="pkg-ultramesh">
+              <img src="logoBonusPaketInternetMovie/ultramesh.png" alt="Ultra Mesh" loading="lazy">
+              <span>Ultra Mesh</span>
+            </div>
+            <div class="pkg-logos">
+                <img src="logoBonusPaketInternetMovie/netflix.webp" alt="Netflix" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/Vidio.png" alt="Vidio" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/vision+.webp" alt="Vision+" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/primevideo.webp" alt="Prime Video" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/Disney+.png" alt="Disney+" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/viu.webp" alt="Viu" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/WeTV_logo.svg.webp" alt="WeTV" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/Kuncie.png" alt="Kuncie" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/logo.png" alt="Fita" loading="lazy">
+                <img src="logoBonusPaketInternetMovie/maxstream.png" alt="Maxstream" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Movie%20Complete%20500%20Mbps%20Mesh%20Rp%20610.000" class="btn btn-red">Pilih Paket</a>
+          </div>
+        </div>
+        <button class="carousel-btn carousel-next" aria-label="Selanjutnya">&#10095;</button>
+      </div>
+      <p style="text-align: center; font-size: 0.8rem; color: var(--gray-500); margin-top: 24px;">* Berlaku selama 90 hari</p>
+      </div><!-- /pkg-tab-panel movie -->
+
+      <div class="pkg-tab-panel" id="packages-maxstream">
+      <div class="pkg-carousel">
+        <button class="carousel-btn carousel-prev" aria-label="Sebelumnya" disabled>&#10094;</button>
+        <div class="pkg-grid pkg-grid-3 pkg-scroll">
+          <!-- 200 Mbps -->
+          <div class="pkg-card">
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">75 Mbps</div>
+              <div class="pkg-speed-num">200 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + MAXstream TV</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 385.000</div>
+            </div>
+            <div class="pkg-logos">
+              <img src="logoBonusPaketInternetMaxStream/maxstream.png" alt="MAXstream" loading="lazy">
+              <img src="logoBonusPaketInternetMaxStream/170channel.png" alt="170+ Channel TV" loading="lazy">
+              <img src="logoBonusPaketInternetMaxStream/fitamotion.png" alt="Fita Motion" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Maxstream%20TV%20200%20Mbps%20Rp%20385.000" class="btn btn-outline-red">Pilih Paket</a>
+          </div>
+          <!-- 300 Mbps -->
+          <div class="pkg-card">
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">100 Mbps</div>
+              <div class="pkg-speed-num">300 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + MAXstream TV</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 415.000</div>
+            </div>
+            <div class="pkg-logos">
+              <img src="logoBonusPaketInternetMaxStream/maxstream.png" alt="MAXstream" loading="lazy">
+              <img src="logoBonusPaketInternetMaxStream/170channel.png" alt="170+ Channel TV" loading="lazy">
+              <img src="logoBonusPaketInternetMaxStream/fitamotion.png" alt="Fita Motion" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Maxstream%20TV%20300%20Mbps%20Rp%20415.000" class="btn btn-outline-red">Pilih Paket</a>
+          </div>
+          <!-- 500 Mbps -->
+          <div class="pkg-card">
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">150 Mbps</div>
+              <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + MAXstream TV</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 445.000</div>
+            </div>
+            <div class="pkg-logos">
+              <img src="logoBonusPaketInternetMaxStream/maxstream.png" alt="MAXstream" loading="lazy">
+              <img src="logoBonusPaketInternetMaxStream/170channel.png" alt="170+ Channel TV" loading="lazy">
+              <img src="logoBonusPaketInternetMaxStream/fitamotion.png" alt="Fita Motion" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Maxstream%20TV%20500%20Mbps%20Rp%20445.000" class="btn btn-outline-red">Pilih Paket</a>
+          </div>
+          <!-- 500 Mbps Ultra Mesh -->
+          <div class="pkg-card popular">
+            <div class="pkg-popular-tag">Paling Populer</div>
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">200 Mbps</div>
+              <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + MAXstream TV</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 495.000</div>
+            </div>
+            <div class="pkg-ultramesh">
+              <img src="logoBonusPaketInternetMaxStream/ultramesh.png" alt="Ultra Mesh" loading="lazy">
+              <span>Ultra Mesh</span>
+            </div>
+            <div class="pkg-logos">
+                <img src="logoBonusPaketInternetMaxStream/maxstream.png" alt="MAXstream" loading="lazy">
+                <img src="logoBonusPaketInternetMaxStream/170channel.png" alt="170+ Channel TV" loading="lazy">
+                <img src="logoBonusPaketInternetMaxStream/fitamotion.png" alt="Fita Motion" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Maxstream%20TV%20500%20Mbps%20Mesh%20Rp%20495.000" class="btn btn-red">Pilih Paket</a>
+          </div>
+          <!-- 500 Mbps Ultra Mesh Best Value -->
+          <div class="pkg-card popular">
+            <div class="pkg-popular-tag">Best Value</div>
+            <div class="pkg-speed">
+              <div class="pkg-speed-old">300 Mbps</div>
+              <div class="pkg-speed-num">500 <span class="pkg-speed-unit">Mbps</span></div>
+            </div>
+            <div class="pkg-name">Internet + MAXstream TV</div>
+            <div class="pkg-price">
+              <div class="pkg-price-label">Harga Perbulan</div>
+              <div class="pkg-price-amount">Rp 645.000</div>
+            </div>
+            <div class="pkg-ultramesh">
+              <img src="logoBonusPaketInternetMaxStream/ultramesh.png" alt="Ultra Mesh" loading="lazy">
+              <span>Ultra Mesh</span>
+            </div>
+            <div class="pkg-logos">
+                <img src="logoBonusPaketInternetMaxStream/maxstream.png" alt="MAXstream" loading="lazy">
+                <img src="logoBonusPaketInternetMaxStream/170channel.png" alt="170+ Channel TV" loading="lazy">
+                <img src="logoBonusPaketInternetMaxStream/fitamotion.png" alt="Fita Motion" loading="lazy">
+            </div>
+            <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20Internet%20Maxstream%20TV%20500%20Mbps%20Mesh%20Rp%20645.000" class="btn btn-red">Pilih Paket</a>
+          </div>
+        </div>
+        <button class="carousel-btn carousel-next" aria-label="Selanjutnya">&#10095;</button>
+      </div>
+      <p style="text-align: center; font-size: 0.8rem; color: var(--gray-500); margin-top: 24px;">* Berlaku selama 90 hari</p>
+      </div><!-- /pkg-tab-panel maxstream -->
+
+      <div class="pkg-tab-panel" id="dynamic">
+      <div class="pkg-carousel">
+        <button class="carousel-btn carousel-prev" aria-label="Sebelumnya" disabled>&#10094;</button>
+        <div class="dynamic-grid dynamic-grid-3 pkg-scroll">
         <div class="dynamic-card">
           <div class="dynamic-speed">50 <span>Mbps</span></div>
           <div class="dynamic-label">Paket One Dynamic</div>
@@ -1558,7 +2389,10 @@
           <div class="dynamic-bonus"><i class="fa-solid fa-mobile-screen"></i> Bonus Kuota 15GB /Bulan</div>
           <a href="https://wa.me/62811300304?text=Halo%2C%20saya%20mau%20daftar%20One%20Dynamic%20150%20Mbps" class="btn">Langganan</a>
         </div>
+        </div>
+        <button class="carousel-btn carousel-next" aria-label="Selanjutnya">&#10095;</button>
       </div>
+      </div><!-- /pkg-tab-panel one dynamic -->
     </div>
   </section>
 
@@ -1574,12 +2408,12 @@
         <div class="feature-card">
           <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
           <h3>Internet Super Cepat</h3>
-          <p>Kecepatan hingga 150 Mbps dengan teknologi fiber optik. Streaming, gaming, WFH tanpa hambatan.</p>
+          <p>Kecepatan hingga 500 Mbps dengan teknologi fiber optik. Streaming, gaming, WFH tanpa hambatan.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><i class="fa-solid fa-tv"></i></div>
           <h3>TV Interaktif</h3>
-          <p>Nikmati CatchPlay+, Prime Video, dan IndiHome TV dengan ratusan channel pilihan keluarga.</p>
+          <p>Nikmati VISION+, Prime Video, Viu, dan MAXstream dengan ratusan channel pilihan keluarga.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon"><i class="fa-solid fa-phone-volume"></i></div>
@@ -1754,8 +2588,9 @@
           <div class="footer-title">Paket</div>
           <ul class="footer-links">
             <li><a href="#promo">Ez Net 20 Mbps</a></li>
-            <li><a href="#packages">Revamp 50 Mbps</a></li>
-            <li><a href="#packages">Revamp 75 Mbps</a></li>
+            <li><a href="#packages">Internet 200 Mbps</a></li>
+            <li><a href="#packages">Internet 300 Mbps</a></li>
+            <li><a href="#packages">Internet 500 Mbps</a></li>
             <li><a href="#dynamic">One Dynamic</a></li>
           </ul>
         </div>
@@ -1793,6 +2628,18 @@
     </div>
   </a>
 
+  <!-- MODAL BONUS — semua logo bonus -->
+  <div class="bonus-modal" id="bonusModal" hidden>
+    <div class="bonus-modal-backdrop"></div>
+    <div class="bonus-modal-box" role="dialog" aria-modal="true" aria-labelledby="bonusModalTitle">
+      <div class="bonus-modal-head">
+        <h3 class="bonus-modal-title" id="bonusModalTitle">Semua Logo Bonus</h3>
+        <button type="button" class="bonus-modal-close" aria-label="Tutup">&times;</button>
+      </div>
+      <div class="bonus-modal-grid"></div>
+    </div>
+  </div>
+
   <script>
     // Navbar scroll effect
     const navbar = document.getElementById('navbar');
@@ -1803,7 +2650,7 @@
     // ============ ENHANCED SMOOTH SCROLL + LANDING ANIMATION ============
     const navOffset = 80; // navbar height offset
     const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
-    const sections = document.querySelectorAll('.section, .stats');
+    const sections = document.querySelectorAll('.section');
 
     // Custom smooth scroll with easing
     function smoothScrollTo(targetY, duration) {
@@ -1929,7 +2776,7 @@
       });
     }, observerOptions);
 
-    document.querySelectorAll('.promo-card, .pkg-card, .dynamic-card, .feature-card, .testi-card, .stat-item').forEach(el => {
+    document.querySelectorAll('.promo-card, .pkg-card, .dynamic-card, .feature-card, .testi-card').forEach(el => {
       el.style.opacity = '0';
       el.style.transform = 'translateY(30px)';
       el.style.transition = 'opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
@@ -1953,43 +2800,6 @@
       header.style.transition = 'opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1)';
       headerObserver.observe(header);
     });
-
-    // ============ COUNTER ANIMATION ============
-    function animateCounter(el, target) {
-      let current = 0;
-      const isDecimal = target.toString().includes('.');
-      const suffix = el.textContent.replace(/[\d.]/g, '');
-      const duration = 2000;
-      const steps = 60;
-      const increment = target / steps;
-      const interval = duration / steps;
-
-      const timer = setInterval(() => {
-        current += increment;
-        if (current >= target) {
-          current = target;
-          clearInterval(timer);
-        }
-        el.textContent = (isDecimal ? current.toFixed(1) : Math.floor(current)) + suffix;
-      }, interval);
-    }
-
-    const statsObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const nums = entry.target.querySelectorAll('.stat-number');
-          nums.forEach(num => {
-            const text = num.textContent;
-            const value = parseFloat(text);
-            if (!isNaN(value)) animateCounter(num, value);
-          });
-          statsObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.5 });
-
-    const statsSection = document.querySelector('.stats');
-    if (statsSection) statsObserver.observe(statsSection);
 
     // ============ TESTIMONIALS SLIDER ============
     (function() {
@@ -2059,6 +2869,232 @@
 
       buildDots();
     })();
+
+    /* ==================== CAROUSEL NAVIGATION ==================== */
+    (function () {
+      function initCarousel(rootSelector) {
+        const root = document.querySelector(rootSelector);
+        if (!root) return;
+
+        const scrollWrap = root.querySelector('.pkg-scroll, .promo-grid');
+        const prevBtn = root.querySelector('.carousel-prev');
+        const nextBtn = root.querySelector('.carousel-next');
+
+        if (!scrollWrap || !prevBtn || !nextBtn) return;
+
+        /* dipanggil ulang saat panel tab diaktifkan (sebelumnya display:none → tak terukur) */
+        function updateButtons() {
+          const scrollLeft = Math.abs(scrollWrap.scrollLeft); /* abs utk overscroll iOS */
+          const maxScroll = scrollWrap.scrollWidth - scrollWrap.clientWidth;
+          prevBtn.disabled = scrollLeft <= 8;
+          nextBtn.disabled = maxScroll <= 8 || scrollLeft >= maxScroll - 8;
+        }
+
+        function scrollByCards(direction) {
+          const card = scrollWrap.querySelector('.pkg-card, .dynamic-card, .promo-card');
+          if (!card) return;
+          const cardWidth = card.offsetWidth;
+          const gap = 16;
+          scrollWrap.scrollBy({
+            left: direction * (cardWidth + gap),
+            behavior: 'smooth',
+          });
+          setTimeout(updateButtons, 300);
+        }
+
+        nextBtn.addEventListener('click', function () { scrollByCards(1); });
+        prevBtn.addEventListener('click', function () { scrollByCards(-1); });
+        scrollWrap.addEventListener('scroll', updateButtons, { passive: true });
+        scrollWrap.addEventListener('scrollend', updateButtons);
+        scrollWrap.addEventListener('touchend', updateButtons);
+
+        window.addEventListener('load', updateButtons);
+        window.addEventListener('resize', updateButtons);
+
+        requestAnimationFrame(updateButtons);
+        updateButtons();
+
+        root._updateCarousel = updateButtons;
+      }
+
+      initCarousel('#pkg-tab-internet .pkg-carousel');
+      initCarousel('#promo .pkg-carousel');
+      initCarousel('#packages-game .pkg-carousel');
+      initCarousel('#packages-movie .pkg-carousel');
+      initCarousel('#packages-maxstream .pkg-carousel');
+      initCarousel('#dynamic .pkg-carousel');
+
+    // Tinggi navbar → CSS var --nav-h utk posisi sticky .pkg-head (sub-header di bawah nav).
+    // ResizeObserver: update saat nav resize (mis. transisi padding .scrolled).
+    (function () {
+      var nav = document.querySelector('.navbar');
+      if (!nav) return;
+      var setNavH = function () {
+        document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px');
+      };
+      setNavH();
+      if (window.ResizeObserver) new ResizeObserver(setNavH).observe(nav);
+      window.addEventListener('resize', setNavH);
+    })();
+    })();
+
+    /* Catatan: script EQUALIZE LOGO WIDTHS dihapus — menulis inline width/height
+       ke Netflix & Vision+ sehingga ukurannya tidak konsisten dengan logo lain.
+       Kini semua logo cukup pakai tinggi seragam dari CSS .pkg-logos img. */
+
+    /* ==================== PACKAGE TABS ==================== */
+    (function () {
+      const tabs = document.querySelectorAll('.pkg-tab');
+      const panels = document.querySelectorAll('.pkg-tab-panel');
+      if (!tabs.length || !panels.length) return;
+
+      function showPanel(target) {
+        let found = false;
+        panels.forEach(function (panel) {
+          const active = panel.id === target;
+          panel.classList.toggle('active', active);
+          if (active) found = true;
+        });
+        if (!found) return;
+        tabs.forEach(function (tab) {
+          tab.classList.toggle('active', tab.dataset.target === target);
+        });
+        // pastikan tab aktif terlihat di strip (mobile: strip bisa di-slide)
+        const activeTab = document.querySelector('.pkg-tab[data-target="' + target + '"]');
+        if (activeTab && activeTab.parentElement) {
+          const strip = activeTab.parentElement;
+          if (strip.scrollWidth > strip.clientWidth + 1) {
+            const tl = activeTab.offsetLeft;
+            const tr = tl + activeTab.offsetWidth;
+            const sl = strip.scrollLeft;
+            const sr = sl + strip.clientWidth;
+            if (tl - 16 < sl) strip.scrollTo({ left: Math.max(0, tl - 16), behavior: 'smooth' });
+            else if (tr + 16 > sr) strip.scrollTo({ left: tr - strip.clientWidth + 16, behavior: 'smooth' });
+          }
+        }
+        // recalc tombol carousel + hitung ulang blok logo setelah panel tampil
+        requestAnimationFrame(function () {
+          const car = document.querySelector('#' + target + ' .pkg-carousel');
+          if (car && typeof car._updateCarousel === 'function') car._updateCarousel();
+          window.dispatchEvent(new Event('resize'));
+        });
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () { showPanel(tab.dataset.target); });
+      });
+
+      // link anchor (footer/nav) → aktifkan tab yg sesuai
+      document.querySelectorAll('a[href^="#"]').forEach(function (link) {
+        link.addEventListener('click', function () {
+          const hash = link.getAttribute('href');
+          if (hash && hash.length > 1) showPanel(hash.slice(1));
+        });
+      });
+      if (location.hash && location.hash.length > 1) showPanel(location.hash.slice(1));
+      window.addEventListener('hashchange', function () {
+        if (location.hash && location.hash.length > 1) showPanel(location.hash.slice(1));
+      });
+    })();
+
+    /* ===== Logo bonus: baris pertama + tombol "Lihat Semua N+" + modal ===== */
+    (function () {
+      var modal = document.getElementById('bonusModal');
+      if (!modal) return;
+      var grid = modal.querySelector('.bonus-modal-grid');
+      var titleEl = modal.querySelector('.bonus-modal-title');
+      var backdrop = modal.querySelector('.bonus-modal-backdrop');
+      var closeBtn = modal.querySelector('.bonus-modal-close');
+
+      function closeModal() {
+        modal.hidden = true;
+        document.body.style.overflow = '';
+      }
+      backdrop.addEventListener('click', closeModal);
+      closeBtn.addEventListener('click', closeModal);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
+      });
+
+      function cardTitle(card) {
+        var speedEl = card && (card.querySelector('.pkg-speed-num') || card.querySelector('.dynamic-speed'));
+        var nameEl = card && (card.querySelector('.pkg-name') || card.querySelector('.dynamic-label') || card.querySelector('.promo-name'));
+        var parts = [];
+        if (speedEl) parts.push(speedEl.textContent.replace(/\s+/g, ' ').trim());
+        if (nameEl) parts.push(nameEl.textContent.replace(/\s+/g, ' ').trim());
+        return parts.length ? 'Bonus ' + parts.join(' — ') : 'Semua Logo Bonus';
+      }
+
+      function openModal(row, card) {
+        titleEl.textContent = cardTitle(card);
+        grid.innerHTML = '';
+        Array.prototype.forEach.call(row.querySelectorAll('img'), function (img) {
+          var item = document.createElement('div');
+          item.className = 'bonus-modal-item';
+          var clone = img.cloneNode(true);
+          clone.removeAttribute('loading');
+          clone.removeAttribute('style');
+          item.appendChild(clone);
+          var cap = document.createElement('span');
+          cap.textContent = img.alt || 'Bonus';
+          item.appendChild(cap);
+          grid.appendChild(item);
+        });
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+      }
+
+      /* Hitung logo yang jatuh ke baris ke-2+ (tersembunyi) → label "Lihat Semua N+" */
+      function refreshLogosBlock(block) {
+        var row = block;
+        var imgs = Array.prototype.slice.call(row.querySelectorAll('img'));
+        if (!block._moreBtn) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'pkg-logos-more';
+          btn.addEventListener('click', function () {
+            openModal(row, block.closest('.pkg-card, .dynamic-card, .promo-card'));
+          });
+          block.insertAdjacentElement('afterend', btn);
+          block._moreBtn = btn;
+        }
+        if (!imgs.length) {
+          block._moreBtn.hidden = true;
+          return;
+        }
+        /* Aturan: kartu >4 logo → tampilkan maks 4 pertama (ikut muat di baris-1),
+           sisanya lewat popup; kartu ≤4 logo → tampilkan semua, tanpa tombol. */
+        imgs.forEach(function (img) { img.style.display = ''; });
+        var clamped = 0;
+        if (imgs.length > 4) {
+          imgs.slice(4).forEach(function (img) {
+            img.style.display = 'none';
+            clamped++;
+          });
+        }
+        var shown = imgs.filter(function (img) { return img.style.display !== 'none'; });
+        var minTop = Math.min.apply(null, shown.map(function (img) { return img.offsetTop; }));
+        /* toleransi utk align-items:center pada logo beda tinggi (±3px) */
+        var overflow = shown.filter(function (img) { return img.offsetTop > minTop + 6; }).length;
+        var hidden = clamped + overflow;
+        block._moreBtn.textContent = 'Lihat Semua ' + hidden + '+';
+        block._moreBtn.hidden = hidden === 0;
+      }
+
+      function refreshAll() {
+        Array.prototype.forEach.call(document.querySelectorAll('.pkg-logos'), refreshLogosBlock);
+      }
+
+      window.addEventListener('resize', refreshAll);
+      window.addEventListener('load', refreshAll);
+      if (document.readyState === 'complete') refreshAll();
+      else window.addEventListener('DOMContentLoaded', refreshAll);
+      requestAnimationFrame(refreshAll);
+    })();
   </script>
 </body>
 </html>
+
+
+
+
